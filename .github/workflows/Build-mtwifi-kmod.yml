@@ -68,7 +68,9 @@ jobs:
       - name: Download tools, toolchain, and kernel sources
         run: |
           cd "$OPENWRT_PATH"
-          make tools/download toolchain/download target/linux/download -j8
+          make tools/download -j8 || make tools/download -j1 V=s
+          make toolchain/download -j1 V=s
+          make target/linux/download -j8 || make target/linux/download -j1 V=s
           find dl -size -1024c -print -delete
 
       - name: Build tools, toolchain, kernel, and MT7992 kmods only
