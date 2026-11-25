@@ -22,3 +22,8 @@ cp -a /tmp/luci-upstream/applications/luci-app-filemanager package/luci-app-file
 # Device-specific UI polish used by known-good TL-7DR7299 builds.
 sed -i '/"mediatek"\/\*|"mvebu"\/\*)/i "mediatek/filogic_a73")\n\tcpu_freq="1.8GHz" ;;' \
   package/emortal/autocore/files/generic/cpuinfo
+# Apply minimal WPA3/PMF WTBL group-key, dual-band teardown, and BMC WED/HNAT bypass patches.
+mkdir -p package/mtk/drivers/mt_wifi7/patches package/mtk/drivers/mt_hwifi/patches
+cp -f "$GITHUB_WORKSPACE/patches/6.6/mt_wifi7/"*.patch package/mtk/drivers/mt_wifi7/patches/
+cp -f "$GITHUB_WORKSPACE/patches/6.6/mt_hwifi/"*.patch package/mtk/drivers/mt_hwifi/patches/
+ls -la package/mtk/drivers/mt_wifi7/patches/ package/mtk/drivers/mt_hwifi/patches/

@@ -104,6 +104,11 @@ jobs:
           test -n "$output_dir"
           test -f "$output_dir"/*tplink_tl-7dr7299-v1-squashfs-sysupgrade.itb
           cp .config "$output_dir/build.config"
+          find build_dir/target-*/linux-mediatek_filogic_a73 -path '*/ipkg-*' -name 'mt_wifi.ko' -exec cp -f {} "$output_dir/" \;
+          find build_dir/target-*/linux-mediatek_filogic_a73 -path '*/ipkg-*' -name 'mtk_hwifi.ko' -exec cp -f {} "$output_dir/" \;
+          cp -f "$output_dir"/packages/kmod-mt_wifi7_*.ipk "$output_dir"/packages/kmod-mt_hwifi_*.ipk "$output_dir/" 2>/dev/null || true
+          test -f "$output_dir/mt_wifi.ko"
+          strings "$output_dir/mt_wifi.ko" | grep '^vermagic=' | head -n 1 || true
           find "$output_dir" -maxdepth 1 -type f ! -name 'sha256sums-custom' -print0 \
             | sort -z \
             | xargs -0 sha256sum > "$output_dir/sha256sums-custom"
@@ -130,7 +135,7 @@ jobs:
             - Branch: mt798x-mt799x-6.6-mtwifi
             - Source revision: 6b7374feb (matched to the known-good Enshan image)
             - RF front end: first radio iPA/iLNA, second radio ePA/eLNA
-            - Wi-Fi: MediaTek proprietary MT7992 driver
+            - Wi-Fi: MediaTek proprietary MT7992 driver (patched: WPA3/PMF WTBL GTK, dual-band EC teardown, BMC WED bypass)
             - LAN address: 192.168.6.1
             - Initial root password: empty; set it immediately after first login
             - Included: iStore, OpenClash, TurboACC, ttyd, Samba4/USB storage,
