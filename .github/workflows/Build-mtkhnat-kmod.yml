@@ -1,0 +1,107 @@
+name: Build patched mtkhnat.ko only (fast)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tl-7dr7299-mtkhnat-kmod
+  cancel-in-progress: false
+
+env:
+  REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6.git
+  REPO_BRANCH: mt798x-mt799x-6.6-mtwifi
+  SOURCE_COMMIT: 6b7374feb2c7e4b0a9486333578f2b8950008840
+  TZ: Asia/Shanghai
+
+jobs:
+  build-mtkhnat:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout build configuration
+        uses: actions/checkout@v5
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      - name: Install build dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
+          sudo apt-get install -y dos2unix libfuse-dev
+          sudo timedatectl set-timezone "$TZ"
+
+      - name: Clone ImmortalWrt source
+        run: |
+          git clone --depth=1 --branch "$REPO_BRANCH" "$REPO_URL" openwrt
+          cd openwrt
+          git fetch --depth=1 origin "$SOURCE_COMMIT"
+          git checkout --detach "$SOURCE_COMMIT"
+          test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
+          echo "OPENWRT_PATH=$GITHUB_WORKSPACE/openwrt" >> "$GITHUB_ENV"
+
+      - name: Prepare feeds, patches, and exact .config
+        run: |
+          cd "$OPENWRT_PATH"
+          "$GITHUB_WORKSPACE/scripts/diy-script.sh"
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+          "$GITHUB_WORKSPACE/scripts/diy-6.6.sh"
+          ! grep -q 'do_hnat_cpu_to_ge' target/linux/mediatek/files-6.6/drivers/net/ethernet/mediatek/mtk_hnat/hnat_nf_hook.c
+          cp defconfig/mt7988_mt7992.config .config
+          cat "$GITHUB_WORKSPACE/configs/6.6.txt" >> .config
+          make defconfig
+          grep -qx 'CONFIG_PACKAGE_kmod-mediatek_hnat=y' .config
+
+      - name: Download tools, toolchain, and kernel sources
+        run: |
+          cd "$OPENWRT_PATH"
+          make tools/download -j8 || make tools/download -j1 V=s
+          make toolchain/download -j1 V=s
+          make target/linux/download -j8 || make target/linux/download -j1 V=s
+          find dl -size -1024c -print -delete
+
+      - name: Build tools, toolchain, kernel, and kmod-mediatek_hnat
+        run: |
+          cd "$OPENWRT_PATH"
+          make tools/install -j"$(nproc)" || make tools/install -j1 V=s
+          make toolchain/install -j"$(nproc)" || make toolchain/install -j1 V=s
+          make target/linux/compile -j"$(nproc)" || make target/linux/compile -j1 V=s
+          echo "=== Kernel .vermagic ==="
+          cat build_dir/target-*/linux-mediatek_filogic_a73/linux-*/.vermagic || true
+          make package/kernel/linux/compile -j"$(nproc)" || make package/kernel/linux/compile -j1 V=s
+
+      - name: Collect stripped mtkhnat.ko and .ipk
+        run: |
+          cd "$OPENWRT_PATH"
+          out="$GITHUB_WORKSPACE/kmod-out"
+          mkdir -p "$out"
+          find build_dir/target-*/linux-mediatek_filogic_a73 -path '*/ipkg-*' -name 'mtkhnat.ko' -exec cp -f {} "$out/" \;
+          find bin/targets -name 'kmod-mediatek_hnat_*.ipk' | xargs -r -I{} cp -f {} "$out/"
+          cp -f build_dir/target-*/linux-mediatek_filogic_a73/linux-*/.vermagic "$out/kernel.vermagic" 2>/dev/null || true
+          test -f "$out/mtkhnat.ko"
+          ! strings "$out/mtkhnat.ko" | grep -q 'do_hnat_cpu_to_ge'
+          ls -lh "$out"
+          strings "$out/mtkhnat.ko" | grep '^vermagic=' | head -n 1 || true
+          (cd "$out" && sha256sum * > sha256sums.txt)
+          cat "$out/sha256sums.txt"
+          echo "KMOD_OUT=$out" >> "$GITHUB_ENV"
+          echo "BUILD_DATE=$(date +'%Y.%m.%d-%H%M')" >> "$GITHUB_ENV"
+
+      - name: Upload patched mtkhnat artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TL-7DR7299-mtkhnat-kmod-${{ env.BUILD_DATE }}
+          path: ${{ env.KMOD_OUT }}
+          retention-days: 30

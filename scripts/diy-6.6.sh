@@ -27,3 +27,9 @@ mkdir -p package/mtk/drivers/mt_wifi7/patches package/mtk/drivers/mt_hwifi/patch
 cp -f "$GITHUB_WORKSPACE/patches/6.6/mt_wifi7/"*.patch package/mtk/drivers/mt_wifi7/patches/
 cp -f "$GITHUB_WORKSPACE/patches/6.6/mt_hwifi/"*.patch package/mtk/drivers/mt_hwifi/patches/
 ls -la package/mtk/drivers/mt_wifi7/patches/ package/mtk/drivers/mt_hwifi/patches/
+
+# Disable non-stock cpu->wifi PPE pingpong in mtkhnat to avoid sent_ppd WAN black-hole bug.
+for p in "$GITHUB_WORKSPACE/patches/6.6/mtk_hnat/"*.patch; do
+  [ -f "$p" ] || continue
+  patch -p1 -d target/linux/mediatek/files-6.6 < "$p"
+done
