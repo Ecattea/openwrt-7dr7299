@@ -1,18 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
-# OpenClash LuCI package.
-rm -rf package/luci-app-openclash
-git clone --depth=1 https://github.com/vernesong/OpenClash.git /tmp/OpenClash
-cp -a /tmp/OpenClash/luci-app-openclash package/luci-app-openclash
+# Nikki v1.26.2 + Mihomo Meta v1.19.32 (skip mihomo-alpha to keep PROVIDES:=mihomo unambiguous).
+rm -rf package/mihomo-meta package/mihomo-alpha package/nikki package/luci-app-nikki /tmp/OpenWrt-nikki
+git clone --depth=1 --branch v1.26.2 https://github.com/nikkinikki-org/OpenWrt-nikki.git /tmp/OpenWrt-nikki
+cp -a /tmp/OpenWrt-nikki/mihomo-meta package/mihomo-meta
+cp -a /tmp/OpenWrt-nikki/nikki package/nikki
+cp -a /tmp/OpenWrt-nikki/luci-app-nikki package/luci-app-nikki
 
-# Embed the arm64 Mihomo/Meta core, so OpenClash works immediately after flashing.
-mkdir -p package/luci-app-openclash/root/etc/openclash/core
-curl --fail --location --retry 3 \
-  https://raw.githubusercontent.com/vernesong/OpenClash/core/master/meta/clash-linux-arm64.tar.gz \
-  -o /tmp/openclash-core.tar.gz
-tar -xzf /tmp/openclash-core.tar.gz -C /tmp
-install -m 0755 /tmp/clash package/luci-app-openclash/root/etc/openclash/core/clash_meta
+# Vantage v1.2.1 LuCI theme & live dashboard (24.10 compatible).
+rm -rf package/luci-theme-vantage package/luci-app-vantage /tmp/luci-theme-vantage
+git clone --depth=1 --branch v1.2.1 https://github.com/anothaDev/luci-theme-vantage.git /tmp/luci-theme-vantage
+cp -a /tmp/luci-theme-vantage/luci-theme-vantage package/luci-theme-vantage
+cp -a /tmp/luci-theme-vantage/luci-app-vantage package/luci-app-vantage
 
 # LuCI's current lightweight file manager. Copy only this application.
 rm -rf package/luci-app-filemanager /tmp/luci-upstream
@@ -22,6 +22,7 @@ cp -a /tmp/luci-upstream/applications/luci-app-filemanager package/luci-app-file
 # Device-specific UI polish used by known-good TL-7DR7299 builds.
 sed -i '/"mediatek"\/\*|"mvebu"\/\*)/i "mediatek/filogic_a73")\n\tcpu_freq="1.8GHz" ;;' \
   package/emortal/autocore/files/generic/cpuinfo
+
 # Apply minimal WPA3/PMF WTBL group-key, dual-band teardown, and BMC WED/HNAT bypass patches.
 mkdir -p package/mtk/drivers/mt_wifi7/patches package/mtk/drivers/mt_hwifi/patches
 cp -f "$GITHUB_WORKSPACE/patches/6.6/mt_wifi7/"*.patch package/mtk/drivers/mt_wifi7/patches/

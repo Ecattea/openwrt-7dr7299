@@ -12,30 +12,36 @@ CONFIG_MTK_WIFI7_SECOND_IF_EPAELNA=y
 # CONFIG_MTK_WIFI7_SECOND_IF_IPAILNA is not set
 # CONFIG_MTK_WIFI7_SECOND_IF_IPAELNA is not set
 
-# Web UI and Chinese localization
+# Web UI, Chinese localization, and Vantage v1.2.1 theme/dashboard
 CONFIG_PACKAGE_luci-ssl-openssl=y
 CONFIG_PACKAGE_luci-i18n-base-zh-cn=y
 CONFIG_PACKAGE_luci-app-package-manager=y
+CONFIG_PACKAGE_luci-i18n-package-manager-zh-cn=y
+CONFIG_PACKAGE_luci-i18n-firewall-zh-cn=y
+CONFIG_PACKAGE_luci-theme-vantage=y
+CONFIG_PACKAGE_luci-i18n-vantage-theme-zh-cn=y
+CONFIG_PACKAGE_luci-app-vantage=y
+CONFIG_PACKAGE_luci-i18n-vantage-zh-cn=y
 
 # iStore
 CONFIG_PACKAGE_luci-app-store=y
 
-# OpenClash (Meta core is embedded by scripts/diy-6.6.sh)
-CONFIG_PACKAGE_luci-app-openclash=y
+# Nikki v1.26.2 + Mihomo Meta v1.19.32 and full kernel/runtime dependencies
+CONFIG_PACKAGE_mihomo-meta=y
+CONFIG_PACKAGE_nikki=y
+CONFIG_PACKAGE_luci-app-nikki=y
+CONFIG_PACKAGE_luci-i18n-nikki-zh-cn=y
+CONFIG_PACKAGE_kmod-dummy=y
 CONFIG_PACKAGE_kmod-tun=y
 CONFIG_PACKAGE_kmod-nft-tproxy=y
+CONFIG_PACKAGE_kmod-nft-socket=y
 CONFIG_PACKAGE_kmod-inet-diag=y
 CONFIG_PACKAGE_dnsmasq-full=y
-CONFIG_PACKAGE_bash=y
+# CONFIG_PACKAGE_dnsmasq is not set
+CONFIG_PACKAGE_yq=y
 CONFIG_PACKAGE_curl=y
 CONFIG_PACKAGE_ca-bundle=y
 CONFIG_PACKAGE_ip-full=y
-CONFIG_PACKAGE_ruby=y
-CONFIG_PACKAGE_ruby-yaml=y
-CONFIG_PACKAGE_unzip=y
-
-# Tailscale and its exact matching kernel dependency
-CONFIG_PACKAGE_tailscale=y
 
 # MediaTek proprietary Wi-Fi and hardware acceleration panels
 CONFIG_PACKAGE_luci-app-mtwifi-cfg=y
@@ -47,17 +53,13 @@ CONFIG_PACKAGE_kmod-mediatek_hnat=y
 CONFIG_PACKAGE_kmod-mtk_wed=y
 CONFIG_PACKAGE_kmod-warp=y
 
-# Browser terminal
+# Browser terminal (required by TurboACC dependency chain)
 CONFIG_PACKAGE_luci-app-ttyd=y
 CONFIG_PACKAGE_luci-i18n-ttyd-zh-cn=y
 CONFIG_PACKAGE_ttyd=y
 
-# USB storage and Samba sharing
+# USB storage and filesystems (without Samba4/wsdd2)
 CONFIG_PACKAGE_block-mount=y
-CONFIG_PACKAGE_autosamba=y
-CONFIG_PACKAGE_luci-app-samba4=y
-CONFIG_PACKAGE_luci-i18n-samba4-zh-cn=y
-CONFIG_PACKAGE_samba4-server=y
 CONFIG_PACKAGE_kmod-usb3=y
 CONFIG_PACKAGE_kmod-usb-storage=y
 CONFIG_PACKAGE_kmod-usb-storage-uas=y
@@ -65,6 +67,8 @@ CONFIG_PACKAGE_kmod-scsi-core=y
 CONFIG_PACKAGE_kmod-fs-ext4=y
 CONFIG_PACKAGE_kmod-fs-exfat=y
 CONFIG_PACKAGE_kmod-fs-ntfs3=y
+CONFIG_PACKAGE_kmod-fs-vfat=y
+CONFIG_PACKAGE_kmod-fs-btrfs=y
 CONFIG_PACKAGE_e2fsprogs=y
 CONFIG_PACKAGE_exfat-fsck=y
 CONFIG_PACKAGE_ntfs3-mount=y
@@ -76,22 +80,36 @@ CONFIG_PACKAGE_usbutils=y
 CONFIG_PACKAGE_luci-app-nlbwmon=y
 CONFIG_PACKAGE_luci-i18n-nlbwmon-zh-cn=y
 
-# UPnP / NAT-PMP
+# UPnP / NAT-PMP (kept in /rom, disabled via preserved UCI config unless needed)
 CONFIG_PACKAGE_luci-app-upnp=y
 CONFIG_PACKAGE_luci-i18n-upnp-zh-cn=y
 CONFIG_PACKAGE_miniupnpd-nftables=y
 
 # LuCI file manager (added from upstream LuCI by scripts/diy-6.6.sh)
 CONFIG_PACKAGE_luci-app-filemanager=y
+CONFIG_PACKAGE_luci-i18n-filemanager-zh-cn=y
 
-# Useful maintenance tools
+# mDNS and maintenance/diagnostic tools
+CONFIG_PACKAGE_avahi-dbus-daemon=y
 CONFIG_PACKAGE_openssh-sftp-server=y
 CONFIG_PACKAGE_htop=y
 CONFIG_PACKAGE_jq=y
+CONFIG_PACKAGE_tcpdump=y
 CONFIG_PACKAGE_openssl-util=y
 CONFIG_PACKAGE_kmod-mtd-rw=y
 
-# Keep image reasonably small
+# Explicitly strip unused heavy/legacy packages
+# CONFIG_PACKAGE_luci-app-eqos-mtk is not set
+# CONFIG_PACKAGE_luci-i18n-eqos-mtk-zh-cn is not set
+# CONFIG_PACKAGE_luci-app-openclash is not set
+# CONFIG_PACKAGE_ruby is not set
+# CONFIG_PACKAGE_ruby-yaml is not set
+# CONFIG_PACKAGE_tailscale is not set
+# CONFIG_PACKAGE_autosamba is not set
+# CONFIG_PACKAGE_luci-app-samba4 is not set
+# CONFIG_PACKAGE_luci-i18n-samba4-zh-cn is not set
+# CONFIG_PACKAGE_samba4-server is not set
+# CONFIG_PACKAGE_wsdd2 is not set
 # CONFIG_PACKAGE_luci-app-diskman is not set
 # CONFIG_PACKAGE_luci-app-dockerman is not set
 # CONFIG_PACKAGE_luci-app-passwall is not set
